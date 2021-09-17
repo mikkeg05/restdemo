@@ -1,5 +1,6 @@
 package facades;
 
+import dtos.EmployeeDTO;
 import dtos.RenameMeDTO;
 import entities.Employee;
 import entities.RenameMe;
@@ -31,50 +32,62 @@ public class EmployeeFacade {
         return emf.createEntityManager();
     }
 
-    public void createEmployee(String name, String address, int salary){
-        Employee employee = new Employee(name, address, salary);
+    public void createEmployee(EmployeeDTO emp){
        EntityManager em = getEntityManager();
         try{
             em.getTransaction().begin();
-            em.persist(employee);
+            em.persist(new Employee(emp.getName(), emp.getAddress(), emp.getSalary()));
             em.getTransaction().commit();
         } finally {
             em.close();
         }
     }
 
-    public Employee getbyID(int id){
+    public EmployeeDTO getbyID(int id){
         EntityManager em = getEntityManager();
-        try{
-            return em.find(Employee.class, id);
-        } finally{
-            em.close();
-        }
+       try{
+           em.getTransaction().begin();
+           TypedQuery<Employee> findfolk = em.createQuery("select e from Employee e where e.id = :id", Employee.class);
+           findfolk.setParameter("id", id);
+           Employee emp = findfolk.getSingleResult();
+           em.getTransaction().commit();
+           return new EmployeeDTO(emp);
+       }
+       finally {
+           em.close();
+       }
     }
-    public List<Employee> getbyName(String name){
+    @SuppressWarnings("unchecked")
+    public List<EmployeeDTO> getbyName(String name){
         EntityManager em = getEntityManager();
         try{
             TypedQuery<Employee> q = em.createQuery("Select e from Employee e Where e.name = :name", Employee.class);
             q.setParameter("name", name);
-            return q.getResultList();
+            List<Employee> pølle = q.getResultList();
+            return (List<EmployeeDTO>)(List<?>)pølle;
         } finally{
             em.close();
         }
     }
-    public List<Employee> getAllEmployees(){
+    @SuppressWarnings("unchecked")
+    public List<EmployeeDTO> getAllEmployees(){
         EntityManager em = getEntityManager();
         try{
             TypedQuery<Employee> q = em.createQuery("Select e from Employee e", Employee.class);
-            return q.getResultList();
+            List<Employee> pølle2 = q.getResultList();
+
+            return (List<EmployeeDTO>)(List<?>)pølle2;
         } finally {
             em.close();
         }
     }
-    public List<Employee> getEmployeesWithHighestSalary(){
+    @SuppressWarnings("unchecked")
+    public List<EmployeeDTO> getEmployeesWithHighestSalary(){
         EntityManager em = getEntityManager();
         try{
             TypedQuery<Employee> doxxing = em.createQuery("Select e from Employee e Where e.Salary = (SELECT MAX(e.Salary) from Employee e)", Employee.class);
-            return doxxing.getResultList();
+           List<Employee> lortlortlortlort = doxxing.getResultList();
+           return (List<EmployeeDTO>)(List<?>)lortlortlortlort;
         } finally {
             em.close();
         }
@@ -86,8 +99,8 @@ public class EmployeeFacade {
     public static void main(String[] args) {
         emf = EMF_Creator.createEntityManagerFactory();
         EmployeeFacade facade = EmployeeFacade.getEmployeeFacade(emf);
-        facade.createEmployee("Johannes", "Himmelgade 99", 78786754);
-        facade.createEmployee("Karl-emil", "Hjemløs", 0);
+        facade.createEmployee(new EmployeeDTO("Karlos", "Jylland", 999));
+        facade.createEmployee(new EmployeeDTO("Karl-emil", "Hjemløs", 0));
 
         System.out.println(facade.getbyID(1));
 
